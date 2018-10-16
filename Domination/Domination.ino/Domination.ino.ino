@@ -33,11 +33,12 @@ const int TONE = 528;
 //    GAME CONFIGURATIONS
 // ==============================================
 const int LED_CONFIG =  13;
-//const long GAME_TIME = 1800000; //40min
-//const long GAME_SAFE = 180000; //3min
 
-const long GAME_TIME = 10000;//DEMO
-const long GAME_SAFE = 5000; //DEMO
+
+
+///// GAME REAL
+long GAME_TIME = 1800000; //30min
+long GAME_SAFE = 180000; //3min
 
 const long CONFIG_BLINK = 200;
 
@@ -61,8 +62,11 @@ int const RED_WIN = 4;
 int const BLUE_WIN = 5;
 int const DRAW_GAME = 6;
 
-int currentStatus = -42;
+int const DEMO_JUMPER_R = 3;
+int const DEMO_JUMPER_W = 4;
 
+int currentStatus = -42;
+bool DEMO_GAME = false;
 
 // ==============================================
 //    PROGRAM
@@ -75,6 +79,19 @@ void setup() {
   pinMode(RED_LED, OUTPUT);
   pinMode(BLUE_LED, OUTPUT);
   pinMode(LED_CONFIG, OUTPUT);
+
+  pinMode(DEMO_JUMPER_W, OUTPUT);
+
+  digitalWrite(DEMO_JUMPER_W, HIGH);
+  DEMO_GAME = digitalRead(DEMO_JUMPER_R) > 0;
+  if (DEMO_GAME) {
+    ///// DEMONSTRACAO
+    GAME_TIME = 10000;//DEMO
+    GAME_SAFE = 5000; //DEMO
+    Serial.println("DEMO ");
+  } else {
+    Serial.println("NORMAL");
+  }
 
   started = millis();
 
@@ -191,10 +208,25 @@ void winBLUE() {
   delay(500);
 }
 
-unsigned long getPercent(unsigned long actual ) {
-  unsigned long total = bluePoint + redPoint;
+String getPercent(unsigned long actual ) {
+  float total = bluePoint + redPoint;
   //Serial.println("Blue: " + String(bluePoint) + " Red: " + String(redPoint));
-  return  actual * 100 / total;
+  float percent =  actual * 100 / total;
+
+  int decimals = ExtractDecimalPart(percent);
+  if (decimals == 00) {
+    return String((int)percent );
+  } else {
+    return String(percent);
+  }
+}
+
+int ExtractDecimalPart(float Value) {
+  float temp = Value - (long)(Value);
+  long p = 1;
+  for (int i = 0; i < 2; i++) p *= 10;
+  int DecimalPart = p * temp;
+  return DecimalPart;
 }
 
 void drawGame () {
@@ -216,12 +248,28 @@ void showLcdStatus(int sts) {
   if (sts != currentStatus) {
     switch (sts) {
       case PRE_GAME:
-        writeLcd("Preparando Jogo", "Aguarde .....");
+        if (DEMO_GAME) {
+          writeLcd("DEMONSTRATIVO", "Aguarde .....");
+        } else {
+          writeLcd("Preparando Jogo", "Aguarde .....");
+        }
         break;
 
       case STARTED:
         if (redPoint == 0 && bluePoint == 0) {
-          writeLcd("Jogo Iniciado  !", "Aperte p dominar");
+          if (DEMO_GAME) {
+            writeLcd("DEMO Iniciada  !", "Aperte p capturar");
+          } else {
+            writeLcd("Jogo Iniciado  !", "Aperte p capturar");
+          }
+
+          digitalWrite(BLUE_LED, HIGH);
+          digitalWrite(RED_LED, HIGH);
+          playBuzz();
+          delay(300);
+          digitalWrite(BLUE_LED, LOW);
+          digitalWrite(RED_LED, LOW);
+          stopBuzz();
         }
         break;
 
@@ -230,15 +278,15 @@ void showLcdStatus(int sts) {
         break;
 
       case RED_WIN:
-        writeLcd("Vencedor:", "VERMELHO    " + String(getPercent(redPoint)) + "%");
+        writeLcd("Vencedor:", "VERMELHO: " + String(getPercent(redPoint)) + "%");
         break;
 
       case BLUE_WIN:
-        writeLcd("Vencedor:", "AZUL       " + String(getPercent(bluePoint)) + "%");
+        writeLcd("Vencedor:", "AMARELO: " + String(getPercent(bluePoint)) + "%");
         break;
 
       case BLUE_DOMINATION:
-        writeLcd("Azul", "Dominando");
+        writeLcd("Amarelo", "Dominando");
         break;
 
       case DRAW_GAME:
