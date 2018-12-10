@@ -1,11 +1,12 @@
 
 /*
   by Victor Hugo
-  v1.1.0
+  v2.0.0
 */
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <Keypad.h>
 
 // ==============================================
 //    BLUE CONFIGURATIONS
@@ -13,7 +14,7 @@
 
 const int BLUE_BTN = 8;
 const int BLUE_LED =  9;
-unsigned long bluePoint = 0;
+
 
 // ==============================================
 //    RED CONFIGURATIONS
@@ -21,7 +22,7 @@ unsigned long bluePoint = 0;
 
 const int RED_BTN = 10;
 const int RED_LED =  11;
-unsigned long redPoint = 0;
+
 
 // ==============================================
 //    BUZZER CONFIGURATIONS
@@ -33,19 +34,24 @@ const int TONE = 528;
 //    GAME CONFIGURATIONS
 // ==============================================
 const int LED_CONFIG =  13;
-
-
-
-///// GAME REAL
-long GAME_TIME = 1800000; //30min
-long GAME_SAFE = 180000; //3min
-
 const long CONFIG_BLINK = 200;
-
 int ledConfigState = 0;
 
-unsigned long started = 0;
-unsigned long previousMillis = 0;
+// ==============================================
+//    KEYBOARD
+// ==============================================
+
+const byte ROWS = 4;
+const byte COLS = 4;
+
+char hexaKeys[ROWS][COLS] = {
+  {'D', '#', '0', '*'},
+  {'C', '9', '8', '7'},
+  {'B', '6', '5', '4'},
+  {'A', '3', '2', '1'}
+};
+byte rowPins[ROWS] = {3, 2, 1, 0}; //connect to the row pinouts of the keypad
+byte colPins[COLS] = {7, 6, 5, 4}; //connect to the column pinouts of the keypad
 
 
 // ==============================================
@@ -53,6 +59,7 @@ unsigned long previousMillis = 0;
 // ==============================================
 
 LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
+Keypad customKeypad = Keypad( makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 
 int const PRE_GAME = 0;
 int const STARTED = 1;
@@ -62,42 +69,94 @@ int const RED_WIN = 4;
 int const BLUE_WIN = 5;
 int const DRAW_GAME = 6;
 
-int const DEMO_JUMPER_R = 3;
-int const DEMO_JUMPER_W = 4;
+int const INTRO = 7;
+int const SELECT_DOM_TIME = 8;
+int const START_DOM_OPT = 9;
 
-int currentStatus = -42;
+unsigned long started = 0;
+unsigned long previousMillis = 0;
+long GAME_TIME = 1800000; //30min
+long GAME_SAFE = 180000; //3min
+unsigned long redPoint = 0;
+unsigned long bluePoint = 0;
+int currentStatus = 42;
 bool DEMO_GAME = false;
+bool IN_DOMI_GAME = false;
 
 // ==============================================
 //    PROGRAM
 // ==============================================
 
 void setup() {
-  Serial.begin(9600);
+//  Serial.begin(9600);
   lcd.begin (16, 2);
 
   pinMode(RED_LED, OUTPUT);
   pinMode(BLUE_LED, OUTPUT);
   pinMode(LED_CONFIG, OUTPUT);
 
-  pinMode(DEMO_JUMPER_W, OUTPUT);
-
-  digitalWrite(DEMO_JUMPER_W, HIGH);
-  DEMO_GAME = digitalRead(DEMO_JUMPER_R) > 0;
-  if (DEMO_GAME) {
-    ///// DEMONSTRACAO
-    GAME_TIME = 10000;//DEMO
-    GAME_SAFE = 5000; //DEMO
-    Serial.println("DEMO ");
-  } else {
-    Serial.println("NORMAL");
-  }
-
-  started = millis();
+  showLcdStatus(INTRO);
 
 }
 
 void loop() {
+
+  char customKey = customKeypad.getKey();
+
+  if (IN_DOMI_GAME == true) {
+    DominationGame();
+   
+    if ((currentStatus == RED_WIN || currentStatus == BLUE_WIN || currentStatus == DRAW_GAME) && customKey) {
+      IN_DOMI_GAME = false;
+      showLcdStatus(INTRO);
+    }
+
+  } else {
+    if (currentStatus == SELECT_DOM_TIME) {
+
+      if (customKey == '1') {
+        GAME_TIME = 900000;
+        started = millis();
+        IN_DOMI_GAME = true;
+
+      } else if (customKey == '2') {
+        GAME_TIME = 1800000;
+        started = millis();
+        IN_DOMI_GAME = true;
+
+      } else if (customKey == '3') {
+        GAME_TIME = 2700000;
+        started = millis();
+        IN_DOMI_GAME = true;
+
+      } else if (customKey == '0') {
+        DEMO_GAME = true;
+        GAME_TIME = 10000;
+        GAME_SAFE = 5000;
+        started = millis();
+        IN_DOMI_GAME = true;
+      }
+
+    } else if (customKey) {
+      showLcdStatus(SELECT_DOM_TIME);
+    }
+  }
+
+  //gameFlux();
+}
+
+void initialize() {
+  started = 0;
+  previousMillis = 0;
+  GAME_TIME = 1800000; //30min
+  GAME_SAFE = 180000; //3min
+  redPoint = 0;
+  bluePoint = 0;
+  DEMO_GAME = false;
+  IN_DOMI_GAME = false;
+}
+
+void DominationGame() {
 
   //digitalWrite(LED_CONFIG, HIGH);
   unsigned long currentMillis = millis();
@@ -156,6 +215,8 @@ void loop() {
   }
 }
 
+
+
 void dominationRED() {
   digitalWrite(BLUE_LED, LOW); // LED OFF
   digitalWrite(RED_LED, HIGH); // LED ON
@@ -172,12 +233,12 @@ void dominationBLUE() {
 
 void winRED() {
 
-  Serial.println("RED WINS!");
+  //Serial.println("RED WINS!");
   showLcdStatus(RED_WIN);
 
-  Serial.println(String(getPercent(redPoint)) + "% (" + String(redPoint)
-                 + ") contra o BLUE: " + String(getPercent(bluePoint))
-                 + "% (" + String(bluePoint) + ")." );
+  //Serial.println(String(getPercent(redPoint)) + "% (" + String(redPoint)
+  //               + ") contra o BLUE: " + String(getPercent(bluePoint))
+  //               + "% (" + String(bluePoint) + ")." );
 
   digitalWrite(BLUE_LED, LOW);
   digitalWrite(RED_LED, HIGH);
@@ -192,12 +253,12 @@ void winRED() {
 
 void winBLUE() {
 
-  Serial.print("BLUE WINS! ");
+  //Serial.print("BLUE WINS! ");
   showLcdStatus(BLUE_WIN);
 
-  Serial.println(String(getPercent(bluePoint)) + "% (" + String(bluePoint)
-                 + ") contra o RED: " + String(getPercent(redPoint))
-                 + "% (" + String(redPoint) + ")." );
+  //Serial.println(String(getPercent(bluePoint)) + "% (" + String(bluePoint)
+  //               + ") contra o RED: " + String(getPercent(redPoint))
+  //               + "% (" + String(redPoint) + ")." );
 
   digitalWrite(RED_LED, LOW);
   digitalWrite(BLUE_LED, HIGH);
@@ -230,7 +291,7 @@ int ExtractDecimalPart(float Value) {
 }
 
 void drawGame () {
-  Serial.println("DRAW GAME !!!!");
+  //Serial.println("DRAW GAME !!!!");
   showLcdStatus(DRAW_GAME);
 
   digitalWrite(BLUE_LED, HIGH);
@@ -244,15 +305,23 @@ void drawGame () {
 
 }
 
+void showLcdStatus() {
+  showLcdStatus(currentStatus);
+}
 void showLcdStatus(int sts) {
   if (sts != currentStatus) {
     switch (sts) {
       case PRE_GAME:
+        playBuzz();
+
         if (DEMO_GAME) {
-          writeLcd("DEMONSTRATIVO", "Aguarde .....");
+          writeLcd("DEMONSTRATIVO", "Em pre jogo  .....");
         } else {
           writeLcd("Preparando Jogo", "Aguarde .....");
         }
+        delay(100);
+
+        stopBuzz();
         break;
 
       case STARTED:
@@ -292,6 +361,15 @@ void showLcdStatus(int sts) {
       case DRAW_GAME:
         writeLcd("*    EMPATE    *", "");
         break;
+
+      case SELECT_DOM_TIME:
+        writeLcd("Minutos p/ Jogo", "1=15m 2=30m 3=45m");
+        break;
+
+      case INTRO:
+        writeLcd(" DOMINATION BOX", "--- Airsoft ---");
+        break;
+
     }
   }
   currentStatus = sts;
