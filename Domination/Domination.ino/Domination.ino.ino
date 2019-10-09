@@ -9,12 +9,11 @@
 #include <Keypad.h>
 
 // ==============================================
-//    BLUE CONFIGURATIONS
+//    YELLOW CONFIGURATIONS
 // ==============================================
 
-const int BLUE_BTN = 8;
-const int BLUE_LED =  9;
-
+const int YELLOW_BTN = 8;
+const int YELLOW_LED =  9;
 
 // ==============================================
 //    RED CONFIGURATIONS
@@ -22,7 +21,6 @@ const int BLUE_LED =  9;
 
 const int RED_BTN = 10;
 const int RED_LED =  11;
-
 
 // ==============================================
 //    BUZZER CONFIGURATIONS
@@ -64,9 +62,9 @@ Keypad customKeypad = Keypad( makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS
 int const PRE_GAME = 0;
 int const STARTED = 1;
 int const RED_DOMINATION = 2;
-int const BLUE_DOMINATION = 3;
+int const YELLOW_DOMINATION = 3;
 int const RED_WIN = 4;
-int const BLUE_WIN = 5;
+int const YELLOW_WIN = 5;
 int const DRAW_GAME = 6;
 
 int const INTRO = 7;
@@ -78,22 +76,26 @@ unsigned long previousMillis = 0;
 long GAME_TIME = 1800000; //30min
 long GAME_SAFE = 180000; //3min
 unsigned long redPoint = 0;
-unsigned long bluePoint = 0;
+unsigned long yellowPoint = 0;
 int currentStatus = 42;
 bool DEMO_GAME = false;
 bool IN_DOMI_GAME = false;
+
+int lastDomination = 0;
 
 // ==============================================
 //    PROGRAM
 // ==============================================
 
 void setup() {
-//  Serial.begin(9600);
+  //Serial.begin(9600);
   lcd.begin (16, 2);
 
   pinMode(RED_LED, OUTPUT);
-  pinMode(BLUE_LED, OUTPUT);
+  pinMode(YELLOW_LED, OUTPUT);
   pinMode(LED_CONFIG, OUTPUT);
+
+  pinMode(BUZZ, OUTPUT);
 
   showLcdStatus(INTRO);
 
@@ -104,9 +106,10 @@ void loop() {
   char customKey = customKeypad.getKey();
 
   if (IN_DOMI_GAME == true) {
-    DominationGame();
-   
-    if ((currentStatus == RED_WIN || currentStatus == BLUE_WIN || currentStatus == DRAW_GAME) && customKey) {
+    //DominationGame();
+    LastDomiGame();
+
+    if ((currentStatus == RED_WIN || currentStatus == YELLOW_WIN || currentStatus == DRAW_GAME) && customKey) {
       IN_DOMI_GAME = false;
       showLcdStatus(INTRO);
     }
@@ -125,7 +128,7 @@ void loop() {
         IN_DOMI_GAME = true;
 
       } else if (customKey == '3') {
-        GAME_TIME = 2700000;
+        GAME_TIME = 2400000;
         started = millis();
         IN_DOMI_GAME = true;
 
@@ -151,9 +154,68 @@ void initialize() {
   GAME_TIME = 1800000; //30min
   GAME_SAFE = 180000; //3min
   redPoint = 0;
-  bluePoint = 0;
+  yellowPoint = 0;
   DEMO_GAME = false;
   IN_DOMI_GAME = false;
+}
+
+
+void LastDomiGame() {
+
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - started <= GAME_SAFE) {
+    showLcdStatus(PRE_GAME);
+
+    if (currentMillis - previousMillis >= CONFIG_BLINK) {
+      // save the last time you blinked the LED
+      previousMillis = currentMillis;
+
+      // if the LED is off turn it on and vice-versa:
+      if (ledConfigState == LOW) {
+        ledConfigState = HIGH;
+      } else {
+        ledConfigState = LOW;
+      }
+
+      // set the LED with the ledState of the variable:
+      digitalWrite(LED_CONFIG, ledConfigState);
+    }
+
+  } else {
+    digitalWrite(LED_CONFIG, HIGH);
+
+    int RED_READ = digitalRead(RED_BTN);
+    int YELLOW_READ = digitalRead(YELLOW_BTN);
+
+    if (currentMillis - started >= GAME_TIME + GAME_SAFE) {
+
+      if (lastDomination == RED_DOMINATION) {
+
+        winRED();
+
+      } else if (lastDomination == YELLOW_DOMINATION) {
+
+        winYELLOW();
+
+      } else {
+
+        drawGame();
+
+      }
+
+    } else {
+      if (RED_READ == LOW) {
+        dominationRED();
+        lastDomination = RED_DOMINATION;
+      } else if (YELLOW_READ == LOW) {
+        dominationYELLOW();
+        lastDomination = YELLOW_DOMINATION;
+      } else {
+        showLcdStatus(STARTED);
+      }
+    }
+  }
 }
 
 void DominationGame() {
@@ -184,17 +246,17 @@ void DominationGame() {
     digitalWrite(LED_CONFIG, HIGH);
 
     int RED_READ = digitalRead(RED_BTN);
-    int BLUE_READ = digitalRead(BLUE_BTN);
+    int YELLOW_READ = digitalRead(YELLOW_BTN);
 
     if (currentMillis - started >= GAME_TIME + GAME_SAFE) {
 
-      if (redPoint > bluePoint) {
+      if (redPoint > yellowPoint) {
 
         winRED();
 
-      } else if (bluePoint > redPoint) {
+      } else if (yellowPoint > redPoint) {
 
-        winBLUE();
+        winYELLOW();
 
       } else {
 
@@ -205,8 +267,8 @@ void DominationGame() {
     } else {
       if (RED_READ == LOW) {
         dominationRED();
-      } else if (BLUE_READ == LOW) {
-        dominationBLUE();
+      } else if (YELLOW_READ == LOW) {
+        dominationYELLOW();
       } else {
         showLcdStatus(STARTED);
       }
@@ -218,17 +280,17 @@ void DominationGame() {
 
 
 void dominationRED() {
-  digitalWrite(BLUE_LED, LOW); // LED OFF
+  digitalWrite(YELLOW_LED, LOW); // LED OFF
   digitalWrite(RED_LED, HIGH); // LED ON
   redPoint += 1;
   showLcdStatus(RED_DOMINATION);
 }
 
-void dominationBLUE() {
+void dominationYELLOW() {
   digitalWrite(RED_LED, LOW); // LED OFF
-  digitalWrite(BLUE_LED, HIGH); // LED ON
-  bluePoint += 1;
-  showLcdStatus(BLUE_DOMINATION);
+  digitalWrite(YELLOW_LED, HIGH); // LED ON
+  yellowPoint += 1;
+  showLcdStatus(YELLOW_DOMINATION);
 }
 
 void winRED() {
@@ -237,10 +299,10 @@ void winRED() {
   showLcdStatus(RED_WIN);
 
   //Serial.println(String(getPercent(redPoint)) + "% (" + String(redPoint)
-  //               + ") contra o BLUE: " + String(getPercent(bluePoint))
-  //               + "% (" + String(bluePoint) + ")." );
+  //               + ") contra o YELLOW: " + String(getPercent(yellowPoint))
+  //               + "% (" + String(yellowPoint) + ")." );
 
-  digitalWrite(BLUE_LED, LOW);
+  digitalWrite(YELLOW_LED, LOW);
   digitalWrite(RED_LED, HIGH);
   playBuzz();
   delay(500);
@@ -251,27 +313,27 @@ void winRED() {
 }
 
 
-void winBLUE() {
+void winYELLOW() {
 
-  //Serial.print("BLUE WINS! ");
-  showLcdStatus(BLUE_WIN);
+  //Serial.print("YELLOW WINS! ");
+  showLcdStatus(YELLOW_WIN);
 
-  //Serial.println(String(getPercent(bluePoint)) + "% (" + String(bluePoint)
+  //Serial.println(String(getPercent(yellowPoint)) + "% (" + String(yellowPoint)
   //               + ") contra o RED: " + String(getPercent(redPoint))
   //               + "% (" + String(redPoint) + ")." );
 
   digitalWrite(RED_LED, LOW);
-  digitalWrite(BLUE_LED, HIGH);
+  digitalWrite(YELLOW_LED, HIGH);
   playBuzz();
   delay(500);
-  digitalWrite(BLUE_LED, LOW);
+  digitalWrite(YELLOW_LED, LOW);
   stopBuzz();
   delay(500);
 }
 
 String getPercent(unsigned long actual ) {
-  float total = bluePoint + redPoint;
-  //Serial.println("Blue: " + String(bluePoint) + " Red: " + String(redPoint));
+  float total = yellowPoint + redPoint;
+  //Serial.println("Yellow: " + String(yellowPoint) + " Red: " + String(redPoint));
   float percent =  actual * 100 / total;
 
   int decimals = ExtractDecimalPart(percent);
@@ -294,11 +356,11 @@ void drawGame () {
   //Serial.println("DRAW GAME !!!!");
   showLcdStatus(DRAW_GAME);
 
-  digitalWrite(BLUE_LED, HIGH);
+  digitalWrite(YELLOW_LED, HIGH);
   digitalWrite(RED_LED, HIGH);
   playBuzz();
   delay(500);
-  digitalWrite(BLUE_LED, LOW);
+  digitalWrite(YELLOW_LED, LOW);
   digitalWrite(RED_LED, LOW);
   stopBuzz();
   delay(500);
@@ -325,18 +387,18 @@ void showLcdStatus(int sts) {
         break;
 
       case STARTED:
-        if (redPoint == 0 && bluePoint == 0) {
+        if (redPoint == 0 && yellowPoint == 0) {
           if (DEMO_GAME) {
             writeLcd("DEMO Iniciada  !", "Aperte p capturar");
           } else {
             writeLcd("Jogo Iniciado  !", "Aperte p capturar");
           }
 
-          digitalWrite(BLUE_LED, HIGH);
+          digitalWrite(YELLOW_LED, HIGH);
           digitalWrite(RED_LED, HIGH);
           playBuzz();
           delay(300);
-          digitalWrite(BLUE_LED, LOW);
+          digitalWrite(YELLOW_LED, LOW);
           digitalWrite(RED_LED, LOW);
           stopBuzz();
         }
@@ -350,11 +412,11 @@ void showLcdStatus(int sts) {
         writeLcd("Vencedor:", "VERMELHO: " + String(getPercent(redPoint)) + "%");
         break;
 
-      case BLUE_WIN:
-        writeLcd("Vencedor:", "AMARELO: " + String(getPercent(bluePoint)) + "%");
+      case YELLOW_WIN:
+        writeLcd("Vencedor:", "AMARELO: " + String(getPercent(yellowPoint)) + "%");
         break;
 
-      case BLUE_DOMINATION:
+      case YELLOW_DOMINATION:
         writeLcd("Amarelo", "Dominando");
         break;
 
@@ -363,7 +425,7 @@ void showLcdStatus(int sts) {
         break;
 
       case SELECT_DOM_TIME:
-        writeLcd("Minutos p/ Jogo", "1=15m 2=30m 3=45m");
+        writeLcd("Minutos p/ Jogo", "1=15m 2=30m 3=40m");
         break;
 
       case INTRO:
@@ -384,13 +446,12 @@ void writeLcd(String primary, String second) {
 }
 
 void playBuzz() {
-  tone(BUZZ, TONE);
+  //tone(BUZZ, TONE);
+  digitalWrite(BUZZ, HIGH);
 }
 
 void stopBuzz() {
-  noTone(BUZZ);
+  //noTone(BUZZ);
+  digitalWrite(BUZZ, LOW);
 }
-
-
-
 
