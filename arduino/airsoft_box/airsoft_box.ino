@@ -1,9 +1,7 @@
-
 /*
   by Victor Hugo
   v2.0.0
 */
-
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
@@ -56,7 +54,7 @@ byte colPins[COLS] = {7, 6, 5, 4}; //connect to the column pinouts of the keypad
 //    COMPONENTS INSTANCE
 // ==============================================
 
-LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
+LiquidCrystal_I2C lcd(0x3F, 20, 4);
 Keypad customKeypad = Keypad( makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 
 int const PRE_GAME = 0;
@@ -89,8 +87,8 @@ int lastDomination = 0;
 
 void setup() {
   //Serial.begin(9600);
-  lcd.begin (16, 2);
-
+  lcd.init();
+  lcd.backlight();
   pinMode(RED_LED, OUTPUT);
   pinMode(YELLOW_LED, OUTPUT);
   pinMode(LED_CONFIG, OUTPUT);
@@ -454,4 +452,3 @@ void stopBuzz() {
   //noTone(BUZZ);
   digitalWrite(BUZZ, LOW);
 }
-
