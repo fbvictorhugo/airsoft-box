@@ -10,8 +10,8 @@
 //    YELLOW CONFIGURATIONS
 // ==============================================
 
-const int YELLOW_BTN = 8;
-const int YELLOW_LED =  9;
+const int YELLOW_BTN = A1;
+const int YELLOW_LED = A2;
 
 // ==============================================
 //    BLUE CONFIGURATIONS
@@ -41,13 +41,14 @@ const byte ROWS = 4;
 const byte COLS = 4;
 
 char hexaKeys[ROWS][COLS] = {
-  {'D', '#', '0', '*'},
-  {'C', '9', '8', '7'},
-  {'B', '6', '5', '4'},
-  {'A', '3', '2', '1'}
+  {'D', 'C', 'B', 'A'},
+  {'#', '9', '6', '3'},
+  {'0', '8', '5', '2'},
+  {'*', '7', '4', '1'}
 };
-byte rowPins[ROWS] = {3, 2, 1, 0}; //connect to the row pinouts of the keypad
-byte colPins[COLS] = {7, 6, 5, 4}; //connect to the column pinouts of the keypad
+
+byte rowPins[ROWS] = {9, 8, 7, 6};
+byte colPins[COLS] = {5, 4, 3, 2};
 
 
 // ==============================================
@@ -55,7 +56,7 @@ byte colPins[COLS] = {7, 6, 5, 4}; //connect to the column pinouts of the keypad
 // ==============================================
 
 LiquidCrystal_I2C lcd(0x3F, 20, 4);
-Keypad customKeypad = Keypad( makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
+Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 
 int const PRE_GAME = 0;
 int const STARTED = 1;
@@ -86,7 +87,7 @@ int lastDomination = 0;
 // ==============================================
 
 void setup() {
-  //Serial.begin(9600);
+  Serial.begin(9600);
   lcd.init();
   lcd.backlight();
   pinMode(BLUE_LED, OUTPUT);
@@ -102,10 +103,11 @@ void setup() {
 void loop() {
 
   char customKey = customKeypad.getKey();
+  Serial.println(String("key: " + customKey));
 
   if (IN_DOMI_GAME == true) {
-    //DominationGame();
-    LastDomiGame();
+    DominationGame();
+    //LastDomiGame();
 
     if ((currentStatus == BLUE_WIN || currentStatus == YELLOW_WIN || currentStatus == DRAW_GAME) && customKey) {
       IN_DOMI_GAME = false;
@@ -132,8 +134,8 @@ void loop() {
 
       } else if (customKey == '0') {
         DEMO_GAME = true;
-        GAME_TIME = 10000;
-        GAME_SAFE = 5000;
+        GAME_TIME = 30000;
+        GAME_SAFE = 3000;
         started = millis();
         IN_DOMI_GAME = true;
       }
@@ -275,8 +277,6 @@ void DominationGame() {
   }
 }
 
-
-
 void dominationBLUE() {
   digitalWrite(YELLOW_LED, LOW); // LED OFF
   digitalWrite(BLUE_LED, HIGH); // LED ON
@@ -307,9 +307,7 @@ void winBLUE() {
   digitalWrite(BLUE_LED, LOW);
   stopBuzz();
   delay(500);
-
 }
-
 
 void winYELLOW() {
 
@@ -427,7 +425,8 @@ void showLcdStatus(int sts) {
         break;
 
       case INTRO:
-        writeLcd(" DOMINATION BOX", "--- Airsoft ---");
+        writeLcd("  AIRSOFT BOX", "--- Airsoft ---");
+        initialize();
         break;
 
     }
