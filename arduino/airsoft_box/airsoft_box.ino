@@ -1,61 +1,33 @@
 /*
   by Victor Hugo
-  v2.0.0
+  v3.0.0
 */
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
 
-// ==============================================
-//    YELLOW CONFIGURATIONS
-// ==============================================
-
 const int YELLOW_BTN = A1;
 const int YELLOW_LED = A2;
-
-// ==============================================
-//    BLUE CONFIGURATIONS
-// ==============================================
-
 const int BLUE_BTN = 10;
-const int BLUE_LED =  11;
+const int BLUE_LED = 11;
+const int BUZZ = 12;
+const int LED_CONFIG = 13;
 
-// ==============================================
-//    BUZZER CONFIGURATIONS
-// ==============================================
-const int BUZZ =  12;
 const int TONE = 528;
-
-// ==============================================
-//    GAME CONFIGURATIONS
-// ==============================================
-const int LED_CONFIG =  13;
 const long CONFIG_BLINK = 200;
-int ledConfigState = 0;
-
-// ==============================================
-//    KEYBOARD
-// ==============================================
 
 const byte ROWS = 4;
 const byte COLS = 4;
-
 char hexaKeys[ROWS][COLS] = {
   {'D', 'C', 'B', 'A'},
   {'#', '9', '6', '3'},
   {'0', '8', '5', '2'},
   {'*', '7', '4', '1'}
 };
-
 byte rowPins[ROWS] = {9, 8, 7, 6};
 byte colPins[COLS] = {5, 4, 3, 2};
 
-
-// ==============================================
-//    COMPONENTS INSTANCE
-// ==============================================
-
-LiquidCrystal_I2C lcd(0x3F, 20, 4);
+LiquidCrystal_I2C lcd(0x3F, 16, 2);
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 
 int const PRE_GAME = 0;
@@ -65,11 +37,11 @@ int const YELLOW_DOMINATION = 3;
 int const BLUE_WIN = 4;
 int const YELLOW_WIN = 5;
 int const DRAW_GAME = 6;
-
 int const INTRO = 7;
 int const SELECT_DOM_TIME = 8;
 int const START_DOM_OPT = 9;
 
+int ledConfigState = 0;
 unsigned long started = 0;
 unsigned long previousMillis = 0;
 long GAME_TIME = 1800000; //30min
@@ -87,17 +59,14 @@ int lastDomination = 0;
 // ==============================================
 
 void setup() {
-  Serial.begin(9600);
+  //Serial.begin(9600);
   lcd.init();
   lcd.backlight();
   pinMode(BLUE_LED, OUTPUT);
   pinMode(YELLOW_LED, OUTPUT);
   pinMode(LED_CONFIG, OUTPUT);
-
   pinMode(BUZZ, OUTPUT);
-
   showLcdStatus(INTRO);
-
 }
 
 void loop() {
@@ -207,10 +176,8 @@ void LastDomiGame() {
     } else {
       if (BLUE_READ == LOW) {
         dominationBLUE();
-        lastDomination = BLUE_DOMINATION;
       } else if (YELLOW_READ == LOW) {
         dominationYELLOW();
-        lastDomination = YELLOW_DOMINATION;
       } else {
         showLcdStatus(STARTED);
       }
@@ -273,7 +240,6 @@ void DominationGame() {
         showLcdStatus(STARTED);
       }
     }
-
   }
 }
 
@@ -281,6 +247,7 @@ void dominationBLUE() {
   digitalWrite(YELLOW_LED, LOW); // LED OFF
   digitalWrite(BLUE_LED, HIGH); // LED ON
   bluePoint += 1;
+  lastDomination = BLUE_DOMINATION;
   showLcdStatus(BLUE_DOMINATION);
 }
 
@@ -288,18 +255,12 @@ void dominationYELLOW() {
   digitalWrite(BLUE_LED, LOW); // LED OFF
   digitalWrite(YELLOW_LED, HIGH); // LED ON
   yellowPoint += 1;
+  lastDomination = YELLOW_DOMINATION;
   showLcdStatus(YELLOW_DOMINATION);
 }
 
 void winBLUE() {
-
-  //Serial.println("BLUE WINS!");
   showLcdStatus(BLUE_WIN);
-
-  //Serial.println(String(getPercent(bluePoint)) + "% (" + String(bluePoint)
-  //               + ") contra o YELLOW: " + String(getPercent(yellowPoint))
-  //               + "% (" + String(yellowPoint) + ")." );
-
   digitalWrite(YELLOW_LED, LOW);
   digitalWrite(BLUE_LED, HIGH);
   playBuzz();
@@ -310,14 +271,7 @@ void winBLUE() {
 }
 
 void winYELLOW() {
-
-  //Serial.print("YELLOW WINS! ");
   showLcdStatus(YELLOW_WIN);
-
-  //Serial.println(String(getPercent(yellowPoint)) + "% (" + String(yellowPoint)
-  //               + ") contra o BLUE: " + String(getPercent(bluePoint))
-  //               + "% (" + String(bluePoint) + ")." );
-
   digitalWrite(BLUE_LED, LOW);
   digitalWrite(YELLOW_LED, HIGH);
   playBuzz();
@@ -360,12 +314,12 @@ void drawGame () {
   digitalWrite(BLUE_LED, LOW);
   stopBuzz();
   delay(500);
-
 }
 
 void showLcdStatus() {
   showLcdStatus(currentStatus);
 }
+
 void showLcdStatus(int sts) {
   if (sts != currentStatus) {
     switch (sts) {
@@ -443,11 +397,9 @@ void writeLcd(String primary, String second) {
 }
 
 void playBuzz() {
-  //tone(BUZZ, TONE);
   digitalWrite(BUZZ, HIGH);
 }
 
 void stopBuzz() {
-  //noTone(BUZZ);
   digitalWrite(BUZZ, LOW);
 }
