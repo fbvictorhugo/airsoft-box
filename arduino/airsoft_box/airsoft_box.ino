@@ -8,8 +8,8 @@
 
 const int YELLOW_BTN = A1;
 const int YELLOW_LED = A2;
-const int BLUE_BTN = 10;
-const int BLUE_LED = 11;
+const int BLUE_BTN = 11;
+const int BLUE_LED = 10;
 const int BUZZ = 12;
 const int LED_CONFIG = 13;
 
@@ -54,7 +54,7 @@ enum GameState {
 
 unsigned long started = 0;
 unsigned long captureTime = 0;
-long GAME_TIME = 60000;
+long GAME_TIME = 10000;
 bool capturing = false;
 int lastDomination = NONE;
 bool ledBlink = false;
@@ -88,8 +88,10 @@ void loop() {
   ledBlink = diff % 100;
 
   if (BLUE_READ == LOW ) {
+    Serial.println("BL");
     capture(BLUE);
   } else if (YELLOW_READ == LOW) {
+    Serial.println("YL");
     capture(YELLOW);
   } else {
     writeLcd("   DOMINATION", " --- ELITE --- ");
@@ -109,6 +111,7 @@ void loop() {
 
 void capture(Teams team) {
   captureTime = millis();
+
 
   if (lastDomination != team) {
     reset();
@@ -148,6 +151,7 @@ void ledBlinkYellow() {
   digitalWrite(YELLOW_LED, HIGH); // LED ON
   delay(50);
   digitalWrite(YELLOW_LED, LOW); // LED ON
+
 }
 
 void ledBlinkBlue() {
