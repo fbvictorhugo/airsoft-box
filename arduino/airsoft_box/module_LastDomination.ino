@@ -1,4 +1,11 @@
 
+unsigned long started = 0;
+unsigned long captureTime = 0;
+long GAME_TIME = 10000;
+bool capturing = false;
+int lastDomination = NONE;
+bool ledBlink = false;
+
 void loop_LastDomination() {
 
   long diff = captureTime - started;
@@ -48,32 +55,27 @@ void capture(Teams team) {
 void ledBlinkTeam(Teams team) {
   switch (team) {
     case BLUE:
-      ledBlinkBlue();
+      showLed(ledBlue, 2);
       break;
     case YELLOW:
-      ledBlinkYellow();
+      showLed(ledYellow, 2);
       break;
   }
 }
 
-void ledBlinkYellow() {
-  digitalWrite(YELLOW_LED, HIGH); // LED ON
-  delay(50);
-  digitalWrite(YELLOW_LED, LOW); // LED ON
-}
-
-void ledBlinkBlue() {
-  digitalWrite(BLUE_LED, HIGH); // LED ON
-  delay(50);
-  digitalWrite(BLUE_LED, LOW); // LED ON
-}
-
 void dominationBLUE() {
-  digitalWrite(YELLOW_LED, LOW); // LED OFF
-  digitalWrite(BLUE_LED, HIGH); // LED ON
+  showLed(ledYellow, 0);
+  showLed(ledBlue, 1);
 }
 
 void dominationYELLOW() {
-  digitalWrite(BLUE_LED, LOW); // LED OFF
-  digitalWrite(YELLOW_LED, HIGH); // LED ON
+  showLed(ledYellow, 1);
+  showLed(ledBlue, 0);
+}
+
+void reset() {
+  lastDomination = NONE;
+  started = 0;
+  capturing = false;
+  captureTime = 0;
 }

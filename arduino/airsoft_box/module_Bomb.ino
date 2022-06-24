@@ -8,10 +8,11 @@ void loop_BombPassword() {
   int YELLOW_READ = digitalRead(YELLOW_BTN);
   delay(100);
 
-  key = cutomKeypad.getKey();
+  key = mKeypad.getKey();
 
   switch (bombState) {
 
+    case BOMB_CONFIG:
     case BOMB_OFF:
       writeLcd("Senha p Armar", "");
 
@@ -23,8 +24,8 @@ void loop_BombPassword() {
         writeLcd("Verificando ...", "");
         delay(DELAY_DEF / 2);
         writeLcd(alignText("BOMBA ARMADA", 'C'), " ");
-        digitalWrite(BLUE_LED, HIGH);
-        digitalWrite(YELLOW_LED, HIGH);
+        showLed(ledYellow, 1);
+        showLed(ledBlue, 1);
         bombState = BOMB_ACTIVE;
         delay(DELAY_DEF / 2);
       } else if (key == KEY_DEL) {
@@ -35,9 +36,8 @@ void loop_BombPassword() {
       break;
 
     case BOMB_ACTIVE:
-      digitalWrite(BLUE_LED, HIGH);
-      digitalWrite(YELLOW_LED, HIGH);
-
+      showLed(ledYellow, 1);
+      showLed(ledBlue, 1);
       writeLcd("Senha p Desarmar", "");
 
       if (isDigit(key)) {
@@ -65,8 +65,8 @@ void loop_BombPassword() {
 
     case BOMB_DEFUSED:
       writeLcd(alignText("BOMBA DESARMADA", 'C'), " ");
-      digitalWrite(YELLOW_LED, LOW);
-      digitalWrite(BLUE_LED, LOW);
+      showLed(ledYellow, 0);
+      showLed(ledBlue, 0);
       break ;
   }
 }

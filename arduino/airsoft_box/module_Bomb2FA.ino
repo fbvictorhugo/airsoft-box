@@ -1,3 +1,5 @@
+int btnBlueActive = 0;
+int btnYellowActive = 0;
 
 void loop_Bomb2FA() {
 
@@ -6,20 +8,21 @@ void loop_Bomb2FA() {
   delay(100);
 
   if (BLUE_READ == LOW) {
-    digitalWrite(BLUE_LED, HIGH);
+
+    showLed(ledBlue, 1);
     btnBlueActive = 1;
   }
 
   if (YELLOW_READ == LOW) {
-    digitalWrite(YELLOW_LED, HIGH);
+    showLed(ledYellow, 1);
     btnYellowActive = 1;
   }
 
   switch (bombState) {
 
+    case BOMB_CONFIG:
     case BOMB_OFF:
       if (btnBlueActive && btnYellowActive) {
-
         writeLcd("", alignText("Bomba Armada", 'C'));
         btnBlueActive = 0;
         btnYellowActive = 0;
@@ -30,7 +33,6 @@ void loop_Bomb2FA() {
       break;
 
     case BOMB_ACTIVE:
-
       if (btnBlueActive && btnYellowActive) {
         writeLcd("", alignText("Bomba Desarmada", 'C'));
         btnBlueActive = 0;
@@ -38,23 +40,24 @@ void loop_Bomb2FA() {
         bombState = BOMB_DEFUSED;
 
       } else if (btnBlueActive && !btnYellowActive) {
-        digitalWrite(BLUE_LED, HIGH);
-        ledBlinkTeam(YELLOW);
+        showLed(ledYellow, 2);
+        showLed(ledBlue, 1);
 
       } else if (btnYellowActive && !btnBlueActive) {
-        digitalWrite(YELLOW_LED, HIGH);
-        ledBlinkTeam(BLUE);
+        showLed(ledYellow, 1);
+        showLed(ledBlue, 2);
+
       } else {
-        ledBlinkTeam(BLUE);
-        ledBlinkTeam(YELLOW);
+        showLed(ledYellow, 2);
+        showLed(ledBlue, 2);
       }
 
       break ;
 
     case BOMB_DEFUSED:
       delay(500);
-      digitalWrite(YELLOW_LED, LOW);
-      digitalWrite(BLUE_LED, LOW);
+      showLed(ledYellow, 0);
+      showLed(ledBlue, 0);
       break ;
   }
 
