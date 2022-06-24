@@ -152,7 +152,7 @@ String getNomeJogo(int modoJogo) {
       return "Domination Points";
       break;
     case 3:
-      return "Bomba PWD";
+      return "Bomba Pass";
       break;
     case 4:
       return "Bomba 2FA";
@@ -162,6 +162,9 @@ String getNomeJogo(int modoJogo) {
       break;
     case 6:
       return "Genius";
+      break;
+    case 7:
+      return "Capacitor";
       break;
     default:
       return " ";
