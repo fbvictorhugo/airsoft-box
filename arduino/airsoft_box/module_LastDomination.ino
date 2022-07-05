@@ -1,6 +1,6 @@
 
 unsigned long started = 0;
-unsigned long captureTime = 0;
+ 
 long GAME_TIME = 10000;
 bool capturing = false;
 int lastDomination = NONE;

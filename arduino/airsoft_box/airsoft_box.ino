@@ -57,11 +57,28 @@ enum BombState {
   BOMB_EXPLODED
 };
 
+
+enum MenuConfig {
+  CFG_BOMB_TIME,
+  CFG_CAPTURE_TIME
+};
+
 GameState gameState = MENU_GAME;
 BombState bombState = BOMB_CONFIG;
 
 char key;
 int modoJogo = -1;
+///-----
+int DELAY_DEF = 5000;
+String passToArm = "";
+String passToDisarm = "";
+String configBombTime = "";
+String configCaptureTime = "";
+int progress = 0;
+int progressMenu = 0;
+unsigned long bombStarted = 0;
+unsigned long bombFinished = 0;
+unsigned long captureTime = 0;
 
 // ==============================================
 //    PROGRAM
@@ -76,6 +93,7 @@ void setup() {
   Serial.begin(9600);
   lcd.init();
   lcd.backlight();
+  
   randomSeed(analogRead(0));//for generate real random
 
   pinModes();
@@ -134,6 +152,9 @@ void loopModoJogo(int modo) {
     case 6:
       loop_Genius();
       break;
+    case 7:
+      loop_Capacitor();
+      break;
     default:
       gameIndisponivel();
       break;
@@ -176,4 +197,53 @@ void gameIndisponivel() {
   delay(3000);
   writeLcd("Selecione o jogo", " ");
   gameState = MENU_GAME;
+}
+
+void showMenuDeviceConfig(int configs[]) {
+  int cgfSize = (sizeof(configs) / sizeof(int));
+  // Serial.println("SIZE: " + String(cgfSize ));
+
+  for (int i = 0; i < cgfSize ; i) {
+    key = mKeypad.getKey();
+
+    switch (configs[i]) {
+      case CFG_BOMB_TIME:
+
+        writeLcd("Configure tempo", "");
+        lcd.setCursor(0, 1);
+        lcd.print("Minutos:");
+
+        if (isDigit(key)) {
+          configBombTime += String(key);
+          writeLcd("", "Minutos: " + String(configBombTime));
+        } else if (key == KEY_ENTER) {
+          i++;
+        } else if (key == KEY_DEL) {
+          configBombTime = "";
+          writeLcd("Configure tempo", "Minutos:");
+        }
+
+        break;
+
+      //----
+      case CFG_CAPTURE_TIME:
+
+        writeLcd("Configure Captura", "");
+        lcd.setCursor(0, 1);
+        lcd.print("Minutos:");
+
+        if (isDigit(key)) {
+          configBombTime += String(key);
+          writeLcd("", "Minutos: " + String(configBombTime));
+        } else if (key == KEY_ENTER) {
+          i++;
+        } else if (key == KEY_DEL) {
+          configBombTime = "";
+          writeLcd("Configure tempo", "Minutos:");
+        }
+
+        break;
+    }
+  }
+
 }

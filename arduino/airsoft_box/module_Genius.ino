@@ -1,21 +1,35 @@
-int level = 5;
-String keyPass;
-int step = 1;
+int level = 3;
 boolean show = true;
-String pass = "";
 
 void loop_Genius() {
+  key = mKeypad.getKey();
 
   switch (bombState) {
 
     case BOMB_CONFIG:
-      keyPass = getKeyPass(level);
-      bombState = BOMB_OFF;
+      writeLcd("Nivel do desafio", "");
+      lcd.setCursor(0, 1);
+      lcd.print("Nivel:");
+
+      if (isDigit(key)) {
+        configBombTime += String(key);
+        writeLcd("", "Nivel: " + String(configBombTime));
+      } else if (key == KEY_ENTER) {
+        level = configBombTime.toInt();
+        writeLcd(" ", alignText("Configurada!", 'C'));
+        progress = 1;
+        passToArm = getKeyPass(level);
+        delay(1000);
+        clearDisplay();
+        bombState = BOMB_OFF;
+      } else if (key == KEY_DEL) {
+        configBombTime = "";
+        writeLcd("Nivel do desafio", "Nivel:");
+      }
       break;
 
     case BOMB_OFF:
       writeLcd("Pressione qualquer", "tecla p iniciar");
-      key = mKeypad.getKey();
 
       if (!isEmpty(String(key))) {
         writeLcd("Iniciando GENIUS", alignText("Nivel " + String(level), 'R'));
@@ -37,63 +51,61 @@ void loop_Genius() {
 
 void genius() {
 
-  key = mKeypad.getKey();
-
   showLed(ledBlue, 0);
   showLed(ledYellow, 0);
 
-  if (step > level) {
+  if (progress > level) {
     bombState = BOMB_DEFUSED;
     return;
   }
 
   if (show) {
 
-    writeLcd("Nivel " + String(step), keyPass.substring(0, step));
+    writeLcd("Nivel " + String(progress), passToArm.substring(0, progress));
     showLed(ledYellow, 1);
     delay(1000);
 
-    writeLcd("Nivel " + String(step) + "  Repita: ", " ");
+    writeLcd("Nivel " + String(progress) + "  Repita: ", " ");
     show = false;
 
   } else {
     showLed(ledBlue, 1);
 
     if (isAlpha(key)) {
-      pass += String(key);
-      writeLcd("Nivel " + String(step) + "  Repita: ",  pass);
+      passToDisarm += String(key);
+      writeLcd("Nivel " + String(progress) + "  Repita: ",  passToDisarm);
 
     } else if (key == KEY_ENTER ) {
-      if (pass.equals(keyPass.substring(0, step))) {
+      if (passToDisarm.equals(passToArm.substring(0, progress))) {
         showLed(ledBlue, 0);
         show = true;
-        step++;
-        pass = "";
+        progress++;
+        passToDisarm = "";
         writeLcd("CERTO",   "proximo nivel ...");
         delay(2000);
 
       } else {
         delay(500);
         writeLcd(alignText("Sequencia", 'C'), alignText("Incoreta", 'C'));
-        step = 1;
+        progress = 1;
         show = true;
-        pass = "";
+        passToDisarm = "";
         delay(2000);
       }
 
     } else if (key == KEY_DEL) {
-      pass = "";
-      writeLcd("Nivel " + String(step) + "  Repita: ",  " " );
+      passToDisarm = "";
+      writeLcd("Nivel " + String(progress) + "  Repita: ",  " " );
     }
   }
 }
 
 String getKeyPass(int level) {
   String array[4] = {"A", "B", "C", "D"};
-  String keyPass = "";
+  String passToArm = "";
   for (int i = 0; i < level; i++) {
-    keyPass += array[random(4)];
+    passToArm += array[random(4)];
   }
-  Serial.println("KeyPass:" + keyPass);
-  return keyPass;
+  Serial.println("passToArm:" + passToArm);
+  return passToArm;
 }

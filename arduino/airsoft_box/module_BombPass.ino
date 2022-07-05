@@ -1,9 +1,3 @@
-String passA = "";
-String passD = "";
-int DELAY_DEF = 5000;
-String btempoBomba = "";
-long bstarted = 0;
-long bfinished = 0;
 
 void loop_BombPassword() {
 
@@ -16,20 +10,21 @@ void loop_BombPassword() {
   switch (bombState) {
 
     case BOMB_CONFIG:
-      writeLcd("Configure tempo", "");
+      writeLcd("Tempo bomba", "");
       lcd.setCursor(0, 1);
       lcd.print("Minutos:");
 
       if (isDigit(key)) {
-        btempoBomba += String(key);
-        writeLcd("", "Minutos: " + String(btempoBomba));
+        configBombTime += String(key);
+        writeLcd("", "Minutos: " + String(configBombTime));
       } else if (key == KEY_ENTER) {
+        writeLcd(" ", alignText("Configurada!", 'C'));
+        delay(1000);
         clearDisplay();
-        delay(2000);
         bombState = BOMB_OFF;
       } else if (key == KEY_DEL) {
-        btempoBomba = "";
-        writeLcd("Configure tempo", "Minutos:");
+        configBombTime = "";
+        writeLcd("Tempo bomba", "Minutos:");
       }
 
       break;
@@ -37,8 +32,8 @@ void loop_BombPassword() {
       writeLcd("Senha p Armar", "");
 
       if (isDigit(key)) {
-        passA += String(key);
-        writeLcd("Senha p Armar", passA);
+        passToArm += String(key);
+        writeLcd("Senha p Armar", passToArm);
 
       } else if (key == KEY_ENTER) {
         writeLcd("Verificando ...", "");
@@ -48,10 +43,10 @@ void loop_BombPassword() {
         showLed(ledBlue, 1);
         bombState = BOMB_ACTIVE;
         delay(DELAY_DEF / 2);
-        bstarted = millis();
-        bfinished = bstarted + (btempoBomba.toInt() * 60000);
+        bombStarted = millis();
+        bombFinished = bombStarted + (configBombTime.toInt() * 60000);
       } else if (key == KEY_DEL) {
-        passA = "";
+        passToArm = "";
         writeLcd("Senha p Armar", " ");
       }
 
@@ -62,30 +57,30 @@ void loop_BombPassword() {
       showLed(ledBlue, 1);
       writeLcd("Senha p Desarmar", "");
 
-      bstarted = millis();
-      if (bstarted >= bfinished) {
+      bombStarted = millis();
+      if (bombStarted >= bombFinished) {
         bombState = BOMB_EXPLODED;
         return;
       }
 
       if (isDigit(key)) {
-        passD += String(key);
-        writeLcd("Senha p Desarmar", passD);
+        passToDisarm += String(key);
+        writeLcd("Senha p Desarmar", passToDisarm);
 
       } else if (key == KEY_ENTER) {
         writeLcd("Verificando ...", "");
         delay(DELAY_DEF);
 
-        if (passA.equals(passD)) {
+        if (passToArm.equals(passToDisarm)) {
           bombState = BOMB_DEFUSED;
         } else {
-          passD = "";
+          passToDisarm = "";
           writeLcd("Nao confere ...",  " ");
           delay(DELAY_DEF / 4);
         }
 
       } else if (key == KEY_DEL) {
-        passD = "";
+        passToDisarm = "";
         writeLcd("Senha p Desarmar", " ");
       }
 
@@ -99,7 +94,6 @@ void loop_BombPassword() {
 
     case BOMB_EXPLODED:
       writeLcd(alignText("BOMBA", 'C'), alignText("EXPLODIU", 'C'));
-
       break;
   }
 }

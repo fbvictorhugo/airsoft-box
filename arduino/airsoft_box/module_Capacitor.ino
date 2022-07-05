@@ -7,14 +7,8 @@
   Essa taxa de atualização pode ser aleatoria,  1x demorar 1 minuto para encher .. 2x 8minutos... 3x 4minutos.
   4x 1.minutos
 */
-
 int maxcap = 12;
-int progress = 0;
-
-String tempoTotal = "";
 long tfrac = 0;
-long astarted = 0;
-long acaptureTime = 0;
 
 void loop_Capacitor() {
   key = mKeypad.getKey();
@@ -23,18 +17,21 @@ void loop_Capacitor() {
   switch (bombState) {
 
     case BOMB_CONFIG:
-      writeLcd("Configure tempo", "");
+      writeLcd("Tempo capacitor", "");
       lcd.setCursor(0, 1);
       lcd.print("Minutos:");
 
       if (isDigit(key)) {
-        tempoTotal += String(key);
-        writeLcd("", "Minutos: " + String(tempoTotal));
+        configBombTime += String(key);
+        writeLcd("", "Minutos: " + String(configBombTime));
       } else if (key == KEY_ENTER) {
-        tfrac = (tempoTotal.toInt() * 60000) / maxcap;
+        tfrac = (configBombTime.toInt() * 60000) / maxcap;
+        writeLcd(" ", alignText("Configurada!", 'C'));
+        delay(1000);
+        clearDisplay();
         bombState = BOMB_OFF;
       } else if (key == KEY_DEL) {
-        tempoTotal = "";
+        configBombTime = "";
         writeLcd("Configure tempo", "Minutos:");
       }
 
@@ -48,14 +45,14 @@ void loop_Capacitor() {
         delay(2000);
         bombState = BOMB_ACTIVE;
         writeLcd("Capacitor", "-[            ]-");
-        astarted = millis();
+        bombStarted = millis();
       }
       break;
 
     case BOMB_ACTIVE:
 
-      acaptureTime = millis();
-      diff = acaptureTime - astarted;
+      captureTime = millis();
+      diff = captureTime - bombStarted;
 
       if (key == KEY_ENTER) {
         lcd.setCursor(2, 1);
@@ -70,8 +67,8 @@ void loop_Capacitor() {
           lcd.setCursor(progress + 2, 1);
           lcd.print("=");
 
-          astarted = millis();
-          acaptureTime = 0;
+          bombStarted = millis();
+          captureTime = 0;
           progress++;
 
           if (progress == maxcap) {

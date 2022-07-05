@@ -21,6 +21,7 @@ void loop_Bomb2FA() {
   switch (bombState) {
 
     case BOMB_CONFIG:
+      break;
     case BOMB_OFF:
       if (btnBlueActive && btnYellowActive) {
         writeLcd("", alignText("Bomba Armada", 'C'));
