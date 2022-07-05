@@ -31,7 +31,7 @@ void loop_Capacitor() {
         tempoTotal += String(key);
         writeLcd("", "Minutos: " + String(tempoTotal));
       } else if (key == KEY_ENTER) {
-        tfrac = (tempoTotal.toInt() * 60 * 1000) / maxcap;
+        tfrac = (tempoTotal.toInt() * 60000) / maxcap;
         bombState = BOMB_OFF;
       } else if (key == KEY_DEL) {
         tempoTotal = "";
@@ -73,9 +73,12 @@ void loop_Capacitor() {
           astarted = millis();
           acaptureTime = 0;
           progress++;
-        } else if (progress == maxcap) {
-          writeLcd("Capacitor", "EXPLODIU");
-          bombState = BOMB_EXPLODED;
+
+          if (progress == maxcap) {
+            delay(1000);
+            writeLcd("Capacitor", alignText("EXPLODIU", 'C'));
+            bombState = BOMB_EXPLODED;
+          }
         }
       }
 
