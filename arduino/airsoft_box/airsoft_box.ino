@@ -63,13 +63,17 @@ enum MenuConfig {
   CFG_CAPTURE_TIME
 };
 
+const int t_wait_menu = 5000;
+const int t_wait_device = 3000;
+
+int BLUE_READ = -1;
+int YELLOW_READ = -1;
+
 GameState gameState = MENU_GAME;
 BombState bombState = BOMB_CONFIG;
 
 char key;
 int modoJogo = -1;
-///-----
-int DELAY_DEF = 5000;
 String passToArm = "";
 String passToDisarm = "";
 String configBombTime = "";
@@ -79,6 +83,7 @@ int progressMenu = 0;
 unsigned long bombStarted = 0;
 unsigned long bombFinished = 0;
 unsigned long captureTime = 0;
+bool hasPassToArm = true;
 
 // ==============================================
 //    PROGRAM
@@ -93,7 +98,7 @@ void setup() {
   Serial.begin(9600);
   lcd.init();
   lcd.backlight();
-  
+
   randomSeed(analogRead(0));//for generate real random
 
   pinModes();
@@ -141,7 +146,7 @@ void loopModoJogo(int modo) {
       loop_LastDomination();
       break;
     case 3:
-      loop_BombPassword();
+      loop_BombPWD();
       break;
     case 4:
       loop_Bomb2FA();
@@ -173,10 +178,10 @@ String getNomeJogo(int modoJogo) {
       return "Domination Points";
       break;
     case 3:
-      return "Bomba Pass";
+      return "Bomb PWD";
       break;
     case 4:
-      return "Bomba 2FA";
+      return "Bomba2FA";
       break;
     case 5:
       return "Crypto";
@@ -197,6 +202,34 @@ void gameIndisponivel() {
   delay(3000);
   writeLcd("Selecione o jogo", " ");
   gameState = MENU_GAME;
+}
+
+void returnToMenu() {
+  gameState = MENU_GAME;
+  bombState = BOMB_CONFIG;
+  // clean
+  key = ' ';
+  modoJogo = -1;
+  passToArm = "";
+  passToDisarm = "";
+  configBombTime = "";
+  configCaptureTime = "";
+  progress = 0;
+  progressMenu = 0;
+  bombStarted = 0;
+  bombFinished = 0;
+  captureTime = 0;
+  hasPassToArm = true;
+
+  writeLcd("Selecione o jogo",  " ");
+}
+
+bool isBtnsConfirm(char key) {
+  if (key == KEY_ENTER || BLUE_READ == LOW || YELLOW_READ == LOW) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void showMenuDeviceConfig(int configs[]) {
