@@ -1,18 +1,16 @@
 /*
-  KTNE Descarga do Capacitor
-  "Descargue o capacitor antes que ele sobrecarregue forçando a alavanca para baixo."
-
-  Um dispositivo que de tempos em tempos é necessário, aprtar o botão para que não "encha" e exploda.
-  Tipo uma barra de loading, porem ela nao pode chegar no 100%.
-  Essa taxa de atualização pode ser aleatoria,  1x demorar 1 minuto para encher .. 2x 8minutos... 3x 4minutos.
-  4x 1.minutos
+  Descargue o capacitor apertando o botão antes que ele sobrecarregue.
 */
 int maxcap = 12;
-long tfrac = 0;
+long timeFrac = 0;
 
 void loop_Capacitor() {
-  key = mKeypad.getKey();
+  BLUE_READ = digitalRead(BLUE_BTN);
+  YELLOW_READ = digitalRead(YELLOW_BTN);
+  delay(100);
+
   long diff = 0;
+  key = mKeypad.getKey();
 
   switch (bombState) {
 
@@ -24,15 +22,20 @@ void loop_Capacitor() {
       if (isDigit(key)) {
         configBombTime += String(key);
         writeLcd("", "Minutos: " + String(configBombTime));
-      } else if (key == KEY_ENTER) {
-        tfrac = (configBombTime.toInt() * 60000) / maxcap;
-        writeLcd(" ", alignText("Configurada!", 'C'));
-        delay(1000);
+      } else if (isBtnsConfirm(key)) {
+        writeLcd("Configurada!", String(configBombTime) + " minutos");
+        configBombTime = String(configBombTime.toInt() * 60000);
+        if (configBombTime.toInt() == 0) {
+          configBombTime = String(10000);// DEMONSTRACAO
+          writeLcd("Configurada!", "10 segundos");
+        }
+        timeFrac = configBombTime.toInt() / maxcap;
+        delay(t_wait_menu / 2);
         clearDisplay();
         bombState = BOMB_OFF;
       } else if (key == KEY_DEL) {
         configBombTime = "";
-        writeLcd("Configure tempo", "Minutos:");
+        writeLcd("Tempo capacitor", "Minutos:");
       }
 
       break;
@@ -42,7 +45,7 @@ void loop_Capacitor() {
 
       if (!isEmpty(String(key))) {
         writeLcd("Preparando", "Capacitor");
-        delay(2000);
+        delay(t_wait_device);
         bombState = BOMB_ACTIVE;
         writeLcd("Capacitor", "-[            ]-");
         bombStarted = millis();
@@ -54,14 +57,13 @@ void loop_Capacitor() {
       captureTime = millis();
       diff = captureTime - bombStarted;
 
-      if (key == KEY_ENTER) {
-        lcd.setCursor(2, 1);
-        lcd.print("            ");
+      if (isBtnsConfirm(key)) {
+        writeLcd("Capacitor", "-[            ]-");
         progress = 0;
-        delay(2000);
+        delay(t_wait_device);
       }
 
-      if (diff >= tfrac)  {
+      if (diff >= timeFrac)  {
 
         if (progress < maxcap) {
           lcd.setCursor(progress + 2, 1);
@@ -72,8 +74,6 @@ void loop_Capacitor() {
           progress++;
 
           if (progress == maxcap) {
-            delay(1000);
-            writeLcd("Capacitor", alignText("EXPLODIU", 'C'));
             bombState = BOMB_EXPLODED;
           }
         }
@@ -82,6 +82,10 @@ void loop_Capacitor() {
       break;
 
     case BOMB_EXPLODED:
+      writeLcd("Capacitor", alignText("EXPLODIU", 'C'));
+      if (key == KEY_DEL) {
+        returnToMenu();
+      }
 
       break;
   }
