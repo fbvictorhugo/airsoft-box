@@ -2,6 +2,10 @@ int level = 3;
 boolean show = true;
 
 void loop_Genius() {
+  BLUE_READ = digitalRead(BLUE_BTN);
+  YELLOW_READ = digitalRead(YELLOW_BTN);
+  delay(100);
+
   key = mKeypad.getKey();
 
   switch (bombState) {
@@ -19,7 +23,7 @@ void loop_Genius() {
         writeLcd(" ", alignText("Configurada!", 'C'));
         progress = 1;
         passToArm = getKeyPass(level);
-        delay(1000);
+        delay(t_wait_menu / 2);
         clearDisplay();
         bombState = BOMB_OFF;
       } else if (key == KEY_DEL) {
@@ -33,7 +37,7 @@ void loop_Genius() {
 
       if (!isEmpty(String(key))) {
         writeLcd("Iniciando GENIUS", alignText("Nivel " + String(level), 'R'));
-        delay(2000);
+        delay(t_wait_menu);
         bombState = BOMB_ACTIVE;
       }
       break;
@@ -44,6 +48,12 @@ void loop_Genius() {
 
     case BOMB_DEFUSED:
       writeLcd("Desafio completo", alignText("Nivel " + String(level), 'R'));
+
+      if (key == KEY_DEL) {
+        show = true;
+        returnToMenu();
+      }
+
       break;
   }
 
@@ -75,22 +85,21 @@ void genius() {
       passToDisarm += String(key);
       writeLcd("Nivel " + String(progress) + "  Repita: ",  passToDisarm);
 
-    } else if (key == KEY_ENTER ) {
+    } else if (isBtnsConfirm(key)) {
       if (passToDisarm.equals(passToArm.substring(0, progress))) {
         showLed(ledBlue, 0);
         show = true;
         progress++;
         passToDisarm = "";
         writeLcd("CERTO",   "proximo nivel ...");
-        delay(2000);
+        delay(t_wait_device);
 
       } else {
-        delay(500);
         writeLcd(alignText("Sequencia", 'C'), alignText("Incoreta", 'C'));
         progress = 1;
         show = true;
         passToDisarm = "";
-        delay(2000);
+        delay(t_wait_device);
       }
 
     } else if (key == KEY_DEL) {
