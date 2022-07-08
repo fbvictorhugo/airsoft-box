@@ -5,7 +5,6 @@
 */
 
 void loop_BombPWD() {
-
   BLUE_READ = digitalRead(BLUE_BTN);
   YELLOW_READ = digitalRead(YELLOW_BTN);
   delay(100);
@@ -34,7 +33,7 @@ void loop_BombPWD() {
         delay(t_wait_menu);
         clearDisplay();
         bombState = BOMB_OFF;
-      } else if (key == KEY_DEL) {
+      } else if (isKeyDEL(key)) {
         configBombTime = "";
         writeLcd("Tempo bomba", "Minutos:");
       }
@@ -62,9 +61,10 @@ void loop_BombPWD() {
         writeLcd(alignText("BOMBA ARMADA", 'C'), alignText(statusSenha, 'C'));
         delay(t_wait_device / 2);
         bombState = BOMB_ACTIVE;
+        playBuzzBombActive();
         bombStarted = millis();
-        bombFinished = bombStarted + configBombTime.toInt() ;
-      } else if (key == KEY_DEL) {
+        bombFinished = bombStarted + configBombTime.toInt();
+      } else if (isKeyDEL(key)) {
         passToArm = "";
         writeLcd("Senha p Armar", " ");
       }
@@ -79,12 +79,13 @@ void loop_BombPWD() {
       if (hasPassToArm) {
         writeLcd("Senha p Desarmar", "");
       } else {
-        writeLcd("Pressione ENTER", "para Desarmar");
+        writeLcd("Pressione CONFIRMA", "para Desarmar");
       }
 
       bombStarted = millis();
       if (bombStarted >= bombFinished) {
         bombState = BOMB_EXPLODED;
+        playBuzzBombExploded();
         return;
       }
 
@@ -101,13 +102,14 @@ void loop_BombPWD() {
 
         if (passToArm.equals(passToDisarm)) {
           bombState = BOMB_DEFUSED;
+          playBuzzBombDefused();
         } else {
           passToDisarm = "";
           writeLcd("Nao confere ...",  " ");
           delay(t_wait_device);
         }
 
-      } else if (hasPassToArm && key == KEY_DEL) {
+      } else if (hasPassToArm && isKeyDEL(key)) {
         passToDisarm = "";
         writeLcd("Senha p Desarmar", " ");
       }
@@ -117,8 +119,7 @@ void loop_BombPWD() {
       writeLcd(alignText("BOMBA DESARMADA", 'C'), " ");
       showLed(ledYellow, 0);
       showLed(ledBlue, 0);
-
-      if (key == KEY_DEL) {
+      if (isKeyDEL(key)) {
         returnToMenu();
       }
 
@@ -129,7 +130,7 @@ void loop_BombPWD() {
       showLed(ledYellow, 0);
       showLed(ledBlue, 0);
 
-      if (key == KEY_DEL) {
+      if (isKeyDEL(key)) {
         returnToMenu();
       }
       break;

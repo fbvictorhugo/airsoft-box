@@ -23,6 +23,8 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 const int YELLOW_BTN = A1;
 const int BLUE_BTN = 11;
+const int BUZZER =  12;
+const int TONE = 432;
 
 const char KEY_ENTER = '#';
 const char KEY_DEL = '*';
@@ -92,6 +94,7 @@ bool hasPassToArm = true;
 void pinModes() {
   pinMode(ledBlue, OUTPUT);
   pinMode(ledYellow, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
 }
 
 void setup() {
@@ -121,7 +124,7 @@ void loop_menu() {
         modoJogo = String(key).toInt();
         writeLcd("", String(key) + ": " + getNomeJogo(modoJogo));
 
-      } else if (key == KEY_ENTER) {
+      } else if (isBtnsConfirm(key)) {
 
         writeLcd("Selecionado", getNomeJogo(modoJogo));
         gameState = IN_GAME;
@@ -205,6 +208,7 @@ void gameIndisponivel() {
 }
 
 void returnToMenu() {
+  stopBuzz();
   gameState = MENU_GAME;
   bombState = BOMB_CONFIG;
   // clean
@@ -226,6 +230,16 @@ void returnToMenu() {
 
 bool isBtnsConfirm(char key) {
   if (key == KEY_ENTER || BLUE_READ == LOW || YELLOW_READ == LOW) {
+    playKeyTone(KEY_ENTER);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool isKeyDEL(char key) {
+  if (key == KEY_DEL) {
+    playKeyTone(KEY_DEL);
     return true;
   } else {
     return false;

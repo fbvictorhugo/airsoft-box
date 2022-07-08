@@ -66,4 +66,46 @@ void showLed(PinLed l, int action) {
   }
 }
 
-//---[          ]-----------------------------------
+//---[ BUZZ ]-----------------------------------
+void playBuzzMenu() {
+  tone(BUZZER, TONE, 100);
+}
+
+void playBuzzBombActive() {
+  tone(BUZZER, TONE, 50);
+}
+
+void playBuzzBombDefused() {
+  tone(BUZZER, TONE, t_wait_device);
+}
+
+void playBuzzBombExploded() {
+  tone(BUZZER, TONE, 15000);
+}
+
+void stopBuzz() {
+  noTone(BUZZER);
+}
+
+void playKeyTone(char key) {
+  switch (key) {
+
+    case KEY_ENTER:
+    case KEY_DEL:
+      tone(BUZZER, TONE, 50);
+      break;
+
+    case 'A':
+      tone(BUZZER, 131, 50);
+      break;
+    case 'B':
+      tone(BUZZER, 196, 50);
+      break;
+    case 'C':
+      tone(BUZZER, 294, 50);
+      break;
+    case 'D':
+      tone(BUZZER, 440, 50);
+      break;
+  }
+}

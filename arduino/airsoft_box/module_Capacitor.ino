@@ -33,7 +33,7 @@ void loop_Capacitor() {
         delay(t_wait_menu / 2);
         clearDisplay();
         bombState = BOMB_OFF;
-      } else if (key == KEY_DEL) {
+      } else if (isKeyDEL(key)) {
         configBombTime = "";
         writeLcd("Tempo capacitor", "Minutos:");
       }
@@ -47,6 +47,7 @@ void loop_Capacitor() {
         writeLcd("Preparando", "Capacitor");
         delay(t_wait_device);
         bombState = BOMB_ACTIVE;
+        playBuzzBombActive();
         writeLcd("Capacitor", "-[            ]-");
         bombStarted = millis();
       }
@@ -72,9 +73,11 @@ void loop_Capacitor() {
           bombStarted = millis();
           captureTime = 0;
           progress++;
+          playBuzzBombActive();
 
           if (progress == maxcap) {
             bombState = BOMB_EXPLODED;
+            playBuzzBombExploded();
           }
         }
       }
@@ -83,7 +86,7 @@ void loop_Capacitor() {
 
     case BOMB_EXPLODED:
       writeLcd("Capacitor", alignText("EXPLODIU", 'C'));
-      if (key == KEY_DEL) {
+      if (isKeyDEL(key)) {
         returnToMenu();
       }
 

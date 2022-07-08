@@ -18,7 +18,7 @@ void loop_Genius() {
       if (isDigit(key)) {
         configBombTime += String(key);
         writeLcd("", "Nivel: " + String(configBombTime));
-      } else if (key == KEY_ENTER) {
+      } else if (isBtnsConfirm(key)) {
         level = configBombTime.toInt();
         writeLcd(" ", alignText("Configurada!", 'C'));
         progress = 1;
@@ -26,7 +26,7 @@ void loop_Genius() {
         delay(t_wait_menu / 2);
         clearDisplay();
         bombState = BOMB_OFF;
-      } else if (key == KEY_DEL) {
+      } else if (isKeyDEL(key)) {
         configBombTime = "";
         writeLcd("Nivel do desafio", "Nivel:");
       }
@@ -39,6 +39,7 @@ void loop_Genius() {
         writeLcd("Iniciando GENIUS", alignText("Nivel " + String(level), 'R'));
         delay(t_wait_menu);
         bombState = BOMB_ACTIVE;
+        playBuzzBombActive();
       }
       break;
 
@@ -49,7 +50,7 @@ void loop_Genius() {
     case BOMB_DEFUSED:
       writeLcd("Desafio completo", alignText("Nivel " + String(level), 'R'));
 
-      if (key == KEY_DEL) {
+      if (isKeyDEL(key)) {
         show = true;
         returnToMenu();
       }
@@ -66,11 +67,11 @@ void genius() {
 
   if (progress > level) {
     bombState = BOMB_DEFUSED;
+    playBuzzBombDefused();
     return;
   }
 
   if (show) {
-
     writeLcd("Nivel " + String(progress), passToArm.substring(0, progress));
     showLed(ledYellow, 1);
     delay(1000);
@@ -86,23 +87,28 @@ void genius() {
       writeLcd("Nivel " + String(progress) + "  Repita: ",  passToDisarm);
 
     } else if (isBtnsConfirm(key)) {
+      writeLcd("Verificando ...", "");
+      delay(t_wait_device);
+
       if (passToDisarm.equals(passToArm.substring(0, progress))) {
         showLed(ledBlue, 0);
         show = true;
         progress++;
         passToDisarm = "";
         writeLcd("CERTO",   "proximo nivel ...");
-        delay(t_wait_device);
+        playBuzzBombActive();
+        delay(t_wait_device / 2);
 
       } else {
         writeLcd(alignText("Sequencia", 'C'), alignText("Incoreta", 'C'));
         progress = 1;
         show = true;
         passToDisarm = "";
+        playBuzzBombActive();
         delay(t_wait_device);
       }
 
-    } else if (key == KEY_DEL) {
+    } else if (isKeyDEL(key)) {
       passToDisarm = "";
       writeLcd("Nivel " + String(progress) + "  Repita: ",  " " );
     }
