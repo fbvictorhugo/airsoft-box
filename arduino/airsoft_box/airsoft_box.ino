@@ -148,6 +148,9 @@ void loopModoJogo(int modo) {
     case 1:
       loop_LastDomination();
       break;
+    case 2:
+      loop_DominationPoints();
+      break;
     case 3:
       loop_BombPWD();
       break;

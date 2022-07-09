@@ -20,7 +20,7 @@ void loop_Genius() {
         writeLcd("", "Nivel: " + String(configBombTime));
       } else if (isBtnsConfirm(key)) {
         level = configBombTime.toInt();
-        writeLcd(" ", alignText("Configurada!", 'C'));
+        writeLcd(" ", alignText("Configurado!", 'C'));
         progress = 1;
         passToArm = getKeyPass(level);
         delay(t_wait_menu / 2);

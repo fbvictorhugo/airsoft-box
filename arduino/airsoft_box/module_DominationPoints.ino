@@ -4,3 +4,7 @@
 
   Se empatar no final do tempo, quem estiver por ultimo vence.
 */
+
+void loop_DominationPoints() {
+
+}

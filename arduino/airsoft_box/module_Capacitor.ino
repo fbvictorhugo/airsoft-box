@@ -23,11 +23,11 @@ void loop_Capacitor() {
         configBombTime += String(key);
         writeLcd("", "Minutos: " + String(configBombTime));
       } else if (isBtnsConfirm(key)) {
-        writeLcd("Configurada!", String(configBombTime) + " minutos");
+        writeLcd("Configurado!", String(configBombTime) + " minutos");
         configBombTime = String(configBombTime.toInt() * 60000);
         if (configBombTime.toInt() == 0) {
           configBombTime = String(10000);// DEMONSTRACAO
-          writeLcd("Configurada!", "10 segundos");
+          writeLcd("Configurado!", "10 segundos");
         }
         timeFrac = configBombTime.toInt() / maxcap;
         delay(t_wait_menu / 2);

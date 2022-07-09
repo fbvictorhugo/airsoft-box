@@ -46,6 +46,8 @@ String alignText(String text, char align) {
 }
 
 //---[ LED UTILS ]-----------------------------------
+int ledState = LOW;
+unsigned long ledPrevMillis = 0;
 
 void showLed(PinLed l, int action) {
   switch (action) {
@@ -58,10 +60,23 @@ void showLed(PinLed l, int action) {
       break;
 
     default:
+
       digitalWrite(l, HIGH);
       delay(50);
       digitalWrite(l, LOW);
       delay(50);
+
+      //      unsigned long ledCrtMillis = millis();
+      //
+      //      if (ledCrtMillis - ledPrevMillis >= 100) {
+      //        ledPrevMillis = ledCrtMillis;
+      //        if (ledState == LOW) {
+      //          ledState = HIGH;
+      //        } else {
+      //          ledState = LOW;
+      //        }
+      //        digitalWrite(l, ledState);
+      //      }
       break;
   }
 }
@@ -89,12 +104,12 @@ void stopBuzz() {
 
 void playKeyTone(char key) {
   switch (key) {
-
     case KEY_ENTER:
-    case KEY_DEL:
       tone(BUZZER, TONE, 50);
       break;
-
+    case KEY_DEL:
+      tone(BUZZER, 404, 50);
+      break;
     case 'A':
       tone(BUZZER, 131, 50);
       break;
