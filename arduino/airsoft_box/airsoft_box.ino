@@ -187,7 +187,7 @@ String getNomeJogo(int modoJogo) {
       return "Bomb PWD";
       break;
     case 4:
-      return "Bomba2FA";
+      return "Bomb 2FA";
       break;
     case 5:
       return "Crypto";
