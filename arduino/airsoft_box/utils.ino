@@ -46,10 +46,68 @@ String alignText(String text, char align) {
 }
 
 //---[ LED UTILS ]-----------------------------------
-int ledState = LOW;
-unsigned long ledPrevMillis = 0;
+//unsigned long ledPrevMillis = 0;
+
+//  LED_NAME {PIN, STATE, blinking, ledPrevBlink};
+int LED_BLUE_VOBJ[4] = {10, LOW, 0, 0};
+int LED_YELLOW_VOBJ[4] = {A2, LOW, 0, 0};
+int ledVOBJ[4];
 
 void showLed(PinLed l, int action) {
+  if (l == ledBlue) {
+    ledVOBJ[0] = LED_BLUE_VOBJ[0];
+    ledVOBJ[1] = LED_BLUE_VOBJ[1];
+    ledVOBJ[2] = LED_BLUE_VOBJ[2];
+    ledVOBJ[3] = LED_BLUE_VOBJ[3];
+  } else {
+    ledVOBJ[0] = LED_YELLOW_VOBJ[0];
+    ledVOBJ[1] = LED_YELLOW_VOBJ[1];
+    ledVOBJ[2] = LED_YELLOW_VOBJ[2];
+    ledVOBJ[3] = LED_YELLOW_VOBJ[3];
+  }
+
+  switch (action) {
+    case 0:
+      ledVOBJ[1] = LOW;
+      ledVOBJ[2] = false;
+      digitalWrite(ledVOBJ[0], ledVOBJ[1]);
+      break;
+
+    case 1:
+      ledVOBJ[1] = HIGH;
+      ledVOBJ[2] = false;
+      digitalWrite(ledVOBJ[0], ledVOBJ[1]);
+      break;
+
+    default:
+
+      unsigned long ledCrtMillis = millis();
+      if (ledCrtMillis - ledVOBJ[3] >= 800) {
+        ledVOBJ[3] = ledCrtMillis;
+        if (ledVOBJ[1]  == LOW) {
+          ledVOBJ[1]  = HIGH;
+        } else {
+          ledVOBJ[1]  = LOW;
+        }
+        ledVOBJ[2] = true;
+        digitalWrite(ledVOBJ[0], ledVOBJ[1]);
+      }
+      break;
+  }
+  if (l == ledBlue) {
+    LED_BLUE_VOBJ[0] = ledVOBJ[0];
+    LED_BLUE_VOBJ[1] = ledVOBJ[1];
+    LED_BLUE_VOBJ[2] = ledVOBJ[2];
+    LED_BLUE_VOBJ[3] = ledVOBJ[3];
+  } else {
+    LED_YELLOW_VOBJ[0] = ledVOBJ[0];
+    LED_YELLOW_VOBJ[1] = ledVOBJ[1];
+    LED_YELLOW_VOBJ[2] = ledVOBJ[2];
+    LED_YELLOW_VOBJ[3] = ledVOBJ[3];
+  }
+}
+
+/*void showLed(PinLed l, int action) {
   switch (action) {
     case 0:
       digitalWrite(l, LOW);
@@ -66,20 +124,20 @@ void showLed(PinLed l, int action) {
       digitalWrite(l, LOW);
       delay(50);
 
-      //      unsigned long ledCrtMillis = millis();
-      //
-      //      if (ledCrtMillis - ledPrevMillis >= 100) {
-      //        ledPrevMillis = ledCrtMillis;
-      //        if (ledState == LOW) {
-      //          ledState = HIGH;
-      //        } else {
-      //          ledState = LOW;
-      //        }
-      //        digitalWrite(l, ledState);
-      //      }
+      unsigned long ledCrtMillis = millis();
+
+      if (ledCrtMillis - ledPrevMillis >= 100) {
+        ledPrevMillis = ledCrtMillis;
+        if (ledState == LOW) {
+          ledState = HIGH;
+        } else {
+          ledState = LOW;
+        }
+        digitalWrite(l, ledState);
+      }
       break;
   }
-}
+  }*/
 
 //---[ BUZZ ]-----------------------------------
 void playBuzzMenu() {
@@ -87,7 +145,7 @@ void playBuzzMenu() {
 }
 
 void playBuzzBombActive() {
-  tone(BUZZER, TONE, 50);
+    tone(BUZZER, TONE, 50);
 }
 
 void playBuzzBombDefused() {
@@ -95,7 +153,7 @@ void playBuzzBombDefused() {
 }
 
 void playBuzzBombExploded() {
-  tone(BUZZER, TONE, 15000);
+   tone(BUZZER, TONE, 15000);
 }
 
 void stopBuzz() {

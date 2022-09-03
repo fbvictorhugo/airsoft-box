@@ -63,7 +63,7 @@ void lastDominaionACTIVE() {
     capture(YELLOW);
   } else {
     writeLcd(alignText("Pressione para", 'C'), alignText("capturar", 'C'));
-    resetCapture();
+    resetCapture(NONE);
   }
 
   if ( diff >= configCaptureTime.toInt()) {
@@ -82,7 +82,7 @@ void capture(Teams team) {
   captureTime = millis();
 
   if (lastDomination != team) {
-    resetCapture();
+    resetCapture(team);
     lastDomination = team;
   } else {
     writeLcd("Capturando ...", " ");
@@ -117,9 +117,17 @@ void dominationYELLOW() {
   showLed(ledBlue, 0);
 }
 
-void resetCapture() {
+void resetCapture(Teams team) {
   lastDomination = NONE;
   started = 0;
   capturing = false;
   captureTime = 0;
+  switch (team) {
+    case BLUE:
+      showLed(ledBlue, 0);
+      break;
+    case YELLOW:
+      showLed(ledYellow, 0);
+      break;
+  }
 }
